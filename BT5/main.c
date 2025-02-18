@@ -1,43 +1,58 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <signal.h>
 #include <sys/wait.h>
 
-void sig_handler(int num) {
-    printf("tiến trình con đã nhận được signal_kill: %d\n", num);
+void create_zombie(void) {
+    pid_t pid = fork();
+    if (pid < 0) {
+        printf("fork failed\n");
+    }
+    if (pid == 0) {
+        // Tiến trình con: kết thúc ngay để trở thành zombie.
+        printf("Tiến trình con với PID = %d, PPID = %d\n", getpid(), getppid());
+        sleep(3);
+        printf("Tiến trình con kết thúc.\n");
+    } else {
+        // Tiến trình cha: ngủ để giữ tiến trình zombie trong bảng tiến trình.
+        printf("tiến trình parent có PID = %d. Tiến trình con có PID = %d).\n", getpid(), pid);
+        sleep(10);
+
+    }
+}
+
+
+void create_orphan() {
+    pid_t pid = fork();
+    if (pid < 0) {
+        printf("fork failed\n");
+    }
+    if (pid == 0) {
+        // Tiến trình con: ngủ lâu để sau khi tiến trình cha kết thúc,
+        printf("Tiến trình con PID = %d, PPID ban đầu = %d\n", getpid(), getppid());
+        sleep(10);
+        printf("\nTiến trình con sau khi cha kết thúc: PID = %d, PPID mới = %d\n", getpid(), getppid());
+    } else {
+        // Tiến trình cha: kết thúc trước tiến trình con
+        printf("Tiến trình Parent với PID = %d. Tiến trình con PID = %d sẽ trở thành orphan.\n", getpid(), pid);
+        sleep(3);
+        printf("Tiến trình cha kết thúc.\n");
+    }
 }
 
 int main(int argc, char *argv[]) {
-    // Kiểm tra số lượng đối số dòng lệnh
-    if (argc == 2) 
-    {
-        printf("Đối số truyền vào: %s\n", argv[1]);
-    }else
-    {
-        printf("Hãy dùng 1 đối số\n");
-        return -1;
+    if (argc != 2) {
+        printf("chỉ được nhập 1 đối số zombie or orphan\n");
     }
-    signal(SIGUSR1, sig_handler);
-    pid_t pid = fork();
     
-    printf("returned value of fork(): %d\n", pid);
-
-    if (pid < 0) {
-        // Fork failed
-        printf("failed\n");
-
-    } else if (pid == 0) {
-        // Child process
-        printf("Child process PID: %d\n", getpid());
-        while(1);
-
+    if (strcmp(argv[1], "zombie") == 0) {
+        create_zombie();
+    } else if (strcmp(argv[1], "orphan") == 0) {
+        create_orphan();
     } else {
-        // Parent process
-        printf("Parent process: %d, created child with PID: %d\n", getpid(), pid);
-        while(1);
-        kill(getpid(), SIGUSR1);
+        fprintf(stderr, "Đối số không hợp lệ. Sử dụng 'zombie' hoặc 'orphan'.\n");
     }
     
     return 0;
