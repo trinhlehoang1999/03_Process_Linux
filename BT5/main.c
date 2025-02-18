@@ -17,10 +17,9 @@ int create_zombie(void) {
         printf("Tiến trình con kết thúc.\n");
     } else {
         // Tiến trình cha: ngủ để giữ tiến trình zombie trong bảng tiến trình.
-        printf("tiến trình parent có PID = %d. Tiến trình con có PID = %d).\n", getpid(), pid);
+        printf("tiến trình cha có PID = %d. Tiến trình con có PID = %d).\n", getpid(), pid);
         sleep(5);
-
-    }
+        printf("tiến trình cha sau khi kết thúc có PID = %d. Tiến trình con có PID = %d).\n", getpid(), pid);    }
 }
 
 
